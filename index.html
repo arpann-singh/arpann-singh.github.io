@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIH 2025: Travel Project Explorer</title>
+    <!-- Chosen Palette: Refined Earth Tones -->
+    <!-- Application Structure Plan: The SPA is now structured with a clear "Dashboard" view and distinct "Detail" sections. The dashboard features interactive project cards, each with animated gauges for key metrics (Impact, Innovation, Complexity) and a prominent win probability score. This allows for rapid, multi-faceted comparison. Clicking a card smoothly navigates the user to a redesigned, two-column detail section. This layout separates the project's core narrative (Problem, Solution, Strategy) from its implementation details (Features, Tech Stack), which significantly improves cognitive load and makes the information more digestible. This structure optimizes for both high-level comparison and deep-dive analysis. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Project Scores (Impact, Innovation, etc.). Goal: Compare project attributes. Viz: Animated Circular Gauges. Interaction: On-load animation. Justification: Gauges offer a more intuitive and visually rich way to compare discrete scores than a complex radar chart, making each card's strengths immediately apparent. Method: Chart.js (Doughnut).
+        - Report Info: Tech Stack. Goal: Organize technical details. Presentation: Grouped pills within categorized cards. Interaction: None. Justification: Grouping technologies into labeled categories (Frontend, AI/ML) and using visual pills provides structure and scannability, which is superior to a simple list. Method: HTML + Tailwind CSS.
+        - Report Info: Key Features. Goal: Inform. Presentation: Styled checklist with icons. Interaction: None. Justification: Using icons and improved typography makes the feature list more engaging and easier to read than a standard bulleted list. Method: HTML + Tailwind CSS.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #F8F7F4; /* Lighter Cream */
+            color: #4A4A4A; /* Dark Gray */
+            font-family: 'Inter', sans-serif;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 80px;
+        }
+        .nav-link.active {
+            color: #D68D2B; /* Deep Orange */
+            font-weight: 700;
+        }
+        .sort-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .sort-btn.active {
+            background-color: #D68D2B;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .card-gradient {
+            background-image: linear-gradient(to top, #ffffff, #F8F7F4);
+        }
+        .detail-card {
+            background-color: #FFFFFF;
+            border: 1px solid #EAE8E1;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.02);
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+        .animate-pulse-fast {
+            animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div id="app-container" class="container mx-auto px-4 sm:px-6 lg:px-8">
+
+        <header class="text-center py-16">
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-[#3D352A]">SIH 2025 Travel Projects</h1>
+            <p class="mt-4 text-lg text-[#6B6B6B]">An Interactive Strategic Guide to Winning Ideas</p>
+        </header>
+
+        <nav id="navbar" class="sticky top-0 bg-[#F8F7F4]/80 backdrop-blur-lg z-10 py-4 mb-16 border-b border-[#EAE8E1]">
+            <ul class="flex justify-center items-center space-x-6 sm:space-x-10 text-sm sm:text-base font-medium text-[#6B6B6B]">
+                <li><a href="#project-1" class="nav-link hover:text-[#D68D2B] transition-colors">🙏 Crowd Manager</a></li>
+                <li><a href="#project-2" class="nav-link hover:text-[#D68D2B] transition-colors">🛡️ Safety Net</a></li>
+                <li><a href="#project-3" class="nav-link hover:text-[#D68D2B] transition-colors">🏞️ Eco-Tourism</a></li>
+                <li><a href="#project-4" class="nav-link hover:text-[#D68D2B] transition-colors">🚇 Urban Transit</a></li>
+            </ul>
+        </nav>
+        
+        <main>
+            <section id="overview" class="mb-24">
+                 <div class="text-center">
+                    <h2 class="text-3xl font-bold mb-4 text-[#3D352A]">Projects Dashboard</h2>
+                    <p class="max-w-3xl mx-auto text-[#6B6B6B] mb-8">
+                        Compare top travel projects at a glance. Sort them by their strategic potential and explore detailed insights for each proposal.
+                    </p>
+                 </div>
+                 <div id="sort-controls" class="flex justify-center items-center flex-wrap gap-3 mb-12">
+                     <span class="font-bold mr-2 text-[#3D352A]">Sort By:</span>
+                     <button data-sort="winProbability" class="sort-btn active px-4 py-2 rounded-full text-sm font-semibold bg-white border border-[#EAE8E1]">🏆 Win Probability</button>
+                     <button data-sort="impact" class="sort-btn px-4 py-2 rounded-full text-sm font-semibold bg-white border border-[#EAE8E1]">🌍 Impact</button>
+                     <button data-sort="innovation" class="sort-btn px-4 py-2 rounded-full text-sm font-semibold bg-white border border-[#EAE8E1]">💡 Innovation</button>
+                     <button data-sort="complexity" class="sort-btn px-4 py-2 rounded-full text-sm font-semibold bg-white border border-[#EAE8E1]">⚙️ Complexity</button>
+                 </div>
+                <div id="project-cards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                </div>
+            </section>
+
+            <div id="project-details-container" class="space-y-24">
+            </div>
+        </main>
+        
+        <footer class="text-center py-12 mt-24 border-t border-[#EAE8E1]">
+            <p class="text-[#6B6B6B]">Generated for Smart India Hackathon 2025 Analysis</p>
+        </footer>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    let projectsData = [
+        {
+            id: 'project-1',
+            title: 'AI Pilgrimage Crowd Manager',
+            emoji: '🙏',
+            sihProblem: '#160',
+            winProbability: 85, impact: 9, innovation: 7, complexity: 8,
+            winnerBlurb: "Tackles a high-visibility, critical safety issue in India. A classic SIH problem where technology directly saves lives.",
+            reasoning: "The combination of a critical safety need, a clear government client, and the application of modern AI (Computer Vision) creates a powerful narrative. The potential to prevent stampedes and improve the experience for millions of devotees makes this project a top contender.",
+            problemStatement: "Major pilgrimage sites like Somnath and Dwarka attract immense crowds, leading to severe congestion, long wait times, and significant safety risks, including stampedes. Temple authorities lack real-time data and predictive tools to manage crowd flow effectively, making their response reactive rather than proactive.",
+            solution: {
+                name: "DarshanFlow",
+                description: "An intelligent crowd management platform that uses AI on existing CCTV feeds and mobile data to monitor, predict, and manage crowd dynamics in real-time.",
+                features: ["**Real-time Crowd Density Heatmaps:** AI processes CCTV feeds to generate a live heatmap, identifying crowded spots and estimating wait times.", "**Virtual Queuing System:** An app-based system allowing pilgrims to reserve a time slot for `darshan`, receiving a digital token to eliminate long physical queues.", "**Predictive Alerts:** An ML model analyzes crowd flow to predict potential bottlenecks 30-60 minutes in advance, alerting authorities to take preemptive action.", "**Smart Operations Dashboard:** A unified dashboard for authorities to monitor heatmaps, manage virtual queues, deploy staff, and send mass notifications."]
+            },
+            techStack: { "Frontend": ["React.js", "Vue.js", "Flutter"], "Backend": ["Python (FastAPI)", "Node.js"], "AI/ML": ["OpenCV", "TensorFlow", "YOLOv5"], "Database": ["PostgreSQL", "TimescaleDB", "Redis"], "Data Streaming": ["Apache Kafka", "RTSP"], "Cloud/DevOps": ["AWS/GCP", "Docker", "Kubernetes"] }
+        },
+        {
+            id: 'project-2',
+            title: 'AI Tourist Safety Net',
+            emoji: '🛡️',
+            sihProblem: '#2',
+            winProbability: 80, impact: 8, innovation: 9, complexity: 9,
+            winnerBlurb: "Technically ambitious with a huge 'wow' factor. Combines AI, Blockchain, and Geo-Fencing to solve a universal problem.",
+            reasoning: "The innovation here is the shift from a reactive panic button to a proactive, intelligent safety system. The use of on-device AI for anomaly detection is a sophisticated feature, and the blockchain ID adds a layer of security and trust that judges will find impressive.",
+            problemStatement: "Tourists in remote or unfamiliar areas are vulnerable. In an emergency, sharing accurate location and verified identity with first responders is a major challenge. Existing safety apps are purely reactive and don't offer intelligent, automated distress detection.",
+            solution: {
+                name: "Aura",
+                description: "A personal safety companion app that provides a secure digital identity and uses AI to create a smart safety net around travelers, proactively detecting signs of distress and enabling an instant, coordinated response.",
+                features: ["**Blockchain Digital ID:** A secure, decentralized digital ID that can be quickly verified by authorities.", "**AI Anomaly Detection:** On-device ML analyzes phone sensors to automatically detect falls, prolonged inactivity, or significant route deviation.", "**Smart Geo-fencing:** Proactively warns users if they enter unsafe areas and alerts contacts if they deviate from their travel plan.", "**Intelligent SOS:** A panic button that starts a live location stream, records ambient audio, and alerts a network of police, family, and volunteers."]
+            },
+            techStack: { "Frontend": ["Flutter", "React Native"], "Backend": ["Node.js (NestJS)", "Go (Gin)"], "AI/ML": ["TensorFlow Lite", "PyTorch Mobile"], "Blockchain": ["Hyperledger Fabric", "Polygon"], "Database": ["PostgreSQL/PostGIS", "MongoDB"], "Real-time": ["Socket.IO", "WebRTC"], "Cloud/DevOps": ["AWS/GCP", "Docker", "Kubernetes", "Mapbox"] }
+        },
+        {
+            id: 'project-3',
+            title: 'Immersive Eco-Tourism Platform',
+            emoji: '🏞️',
+            sihProblem: '#32',
+            winProbability: 75, impact: 7, innovation: 8, complexity: 7,
+            winnerBlurb: "A story-driven project with a lot of heart. Aligns with 'Vocal for Local' and sustainable tourism goals.",
+            reasoning: "Its strength lies in its strong narrative and positive social impact. The AR and AI planner features are innovative and create a great demo. The win probability depends on the team's ability to create compelling content and showcase a real connection to the local culture it aims to promote.",
+            problemStatement: "The rich natural beauty and unique tribal culture of regions like Jharkhand are often 'hidden gems,' poorly marketed to a global audience. Standard tourism websites are static and fail to capture the immersive stories and experiences, preventing local communities from benefiting economically.",
+            solution: {
+                name: "Jharkhand Explorer",
+                description: "An AI-driven platform that acts as a personal guide. It uses Augmented Reality to bring stories to life, an AI planner for personalized trips, and a marketplace to connect tourists directly with local artisans and communities.",
+                features: ["**AI-Powered Trip Planner:** Generates custom itineraries based on user interests, focusing on authentic, off-the-beaten-path experiences.", "**Augmented Reality (AR) Storyteller:** At landmarks, users can point their phone to see AR overlays of historical reconstructions, animations of folk stories, or local flora/fauna info.", "**Local Artisan Marketplace:** Allows tourists to buy authentic crafts directly from local artisans, with transparent pricing and storytelling about the craft.", "**Eco-Tourism Gamification:** Rewards tourists with points for sustainable practices (e.g., using designated waste bins, staying at eco-homestays)."]
+            },
+            techStack: { "Frontend": ["Flutter", "React Native (AR)"], "Backend": ["Python (Django)", "Headless CMS (Strapi)"], "AI/ML": ["TensorFlow Recommenders", "Scikit-learn"], "Database": ["PostgreSQL", "MongoDB"], "Cloud/DevOps": ["Vercel", "AWS S3", "Cloudinary"], "Payments": ["Stripe", "Razorpay"] }
+        },
+        {
+            id: 'project-4',
+            title: 'Urban Transit Companion',
+            emoji: '🚇',
+            sihProblem: '#81',
+            winProbability: 65, impact: 8, innovation: 6, complexity: 6,
+            winnerBlurb: "Extremely practical, solving a real, everyday problem for millions with a clear data-driven value proposition for cities.",
+            reasoning: "The solution is highly useful but competes in a space with existing players. The winning edge comes from deep integration with local public transport APIs and the sophistication of the passive trip-logging feature. Success hinges on demonstrating a clear data-sharing model for transport authorities.",
+            problemStatement: "Navigating urban transport is fragmented. Tourists and citizens must juggle multiple apps for journey planning, ticketing, and live tracking. Simultaneously, transport authorities lack unified, real-time data on how people move across different modes of transport, hindering effective planning.",
+            solution: {
+                name: "CityConnect",
+                description: "An all-in-one urban mobility app that integrates journey planning, universal ticketing, and live tracking for all public transport. It also features a privacy-first, passive trip logger to provide anonymized mobility data to city planners.",
+                features: ["**Multimodal Journey Planner:** Suggests the best routes combining metro, buses, and auto-rickshaws with real-time price and time comparisons.", "**Unified Digital Ticketing:** A single QR-code based ticketing system and wallet for all integrated public transport.", "**Live Vehicle Tracking:** Shows the real-time GPS location of buses and metros on a map.", "**Passive Trip Logging:** With user consent, the app automatically detects and logs journeys, which are then anonymized and aggregated to create mobility analytics for authorities."]
+            },
+            techStack: { "Frontend": ["Flutter", "React Native"], "Backend": ["Go", "Node.js"], "Database": ["TimescaleDB", "PostgreSQL/PostGIS"], "Data Ingestion": ["Apache Kafka", "GTFS-Realtime"], "Cloud/DevOps": ["AWS/GCP", "Kubernetes", "Kinesis"], "Mapping APIs": ["Mapbox", "OpenStreetMap"] }
+        }
+    ];
+
+    const cardsContainer = document.getElementById('project-cards-container');
+    const detailsContainer = document.getElementById('project-details-container');
+    const sortControls = document.getElementById('sort-controls');
+    let activeChartObjects = {};
+
+    const gaugeConfig = (value, label, color) => ({
+        type: 'doughnut',
+        data: {
+            labels: [label, ''],
+            datasets: [{
+                data: [value, 10 - value],
+                backgroundColor: [color, '#EAE8E1'],
+                borderColor: ['#FFFFFF', '#FFFFFF'],
+                borderWidth: 2,
+                circumference: 180,
+                rotation: 270,
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false, cutout: '75%',
+            plugins: { legend: { display: false }, tooltip: { enabled: false } },
+            animation: { animateScale: true, animateRotate: true }
+        },
+        plugins: [{
+            id: 'gaugeLabel',
+            beforeDraw(chart) {
+                const { width, height, ctx } = chart;
+                ctx.restore();
+                ctx.font = `800 ${height / 4.5}px sans-serif`;
+                ctx.textBaseline = 'middle'; ctx.fillStyle = '#3D352A';
+                const text = `${value}`;
+                const textX = Math.round((width - ctx.measureText(text).width) / 2);
+                const textY = height / 1.5;
+                ctx.fillText(text, textX, textY);
+                
+                ctx.font = `500 ${height / 9}px sans-serif`;
+                ctx.textBaseline = 'bottom'; ctx.fillStyle = '#6B6B6B';
+                const labelText = chart.data.labels[0];
+                const labelX = Math.round((width - ctx.measureText(labelText).width) / 2);
+                const labelY = height - 5;
+                ctx.fillText(labelText, labelX, labelY);
+
+                ctx.save();
+            }
+        }]
+    });
+
+    function renderCards(sortKey = 'winProbability') {
+        projectsData.sort((a, b) => b[sortKey] - a[sortKey]);
+        cardsContainer.innerHTML = '';
+        Object.values(activeChartObjects).forEach(chart => chart.destroy());
+        activeChartObjects = {};
+        
+        projectsData.forEach(project => {
+            const cardHTML = `
+                <div class="card-gradient p-6 rounded-3xl shadow-lg border border-[#EAE8E1] hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col text-center">
+                    <div class="flex-grow">
+                        <h3 class="text-xl font-bold text-[#3D352A] h-16 flex items-center justify-center">${project.emoji} ${project.title}</h3>
+                        <div class="relative my-4">
+                             <div class="text-5xl font-extrabold text-[#3D352A]">${project.winProbability}%</div>
+                             <div class="text-xs text-[#6B6B6B] font-semibold uppercase tracking-wider">Win Probability</div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 px-4 my-6">
+                            <div class="chart-container"><canvas id="chart-impact-${project.id}"></canvas></div>
+                            <div class="chart-container"><canvas id="chart-innovation-${project.id}"></canvas></div>
+                            <div class="chart-container"><canvas id="chart-complexity-${project.id}"></canvas></div>
+                        </div>
+                        <p class="text-sm text-[#4A4A4A] mt-4 flex-grow">${project.winnerBlurb}</p>
+                    </div>
+                    <a href="#${project.id}" class="block w-full mt-6 bg-[#D68D2B] text-white font-bold py-3 px-4 rounded-xl text-center hover:bg-[#b97825] transition-colors shadow-lg shadow-[#D68D2B]/20 hover:shadow-[#D68D2B]/40">
+                        Explore Project Details
+                    </a>
+                </div>
+            `;
+            cardsContainer.innerHTML += cardHTML;
+        });
+
+        projectsData.forEach(project => {
+            activeChartObjects[`impact-${project.id}`] = new Chart(document.getElementById(`chart-impact-${project.id}`).getContext('2d'), gaugeConfig(project.impact, 'Impact', '#34D399'));
+            activeChartObjects[`innovation-${project.id}`] = new Chart(document.getElementById(`chart-innovation-${project.id}`).getContext('2d'), gaugeConfig(project.innovation, 'Innovation', '#60A5FA'));
+            activeChartObjects[`complexity-${project.id}`] = new Chart(document.getElementById(`chart-complexity-${project.id}`).getContext('2d'), gaugeConfig(project.complexity, 'Complexity', '#F87171'));
+        });
+    }
+
+    async function callGeminiAPI(prompt, button, container) {
+        const apiKey = "";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+        const payload = { contents: [{ parts: [{ text: prompt }] }] };
+
+        container.innerHTML = `<div class="bg-[#F8F7F4] p-4 rounded-lg animate-pulse-fast"><p class="text-center text-[#6B6B6B]">✨ Generating Pitch...</p></div>`;
+        button.disabled = true;
+
+        try {
+            let response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`API call failed with status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+            if (text) {
+                const formattedText = text
+                    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-[#3D352A]">$1</strong>')
+                    .replace(/\*/g, '<br><br>• ');
+                container.innerHTML = `<div class="bg-[#F8F7F4] p-6 rounded-lg border border-[#EAE8E1] text-base leading-relaxed text-[#4A4A4A]">${formattedText}</div>`;
+            } else {
+                container.innerHTML = `<p class="text-red-500">Failed to generate pitch. Response was empty.</p>`;
+                button.disabled = false;
+            }
+        } catch (error) {
+            console.error("Gemini API Error:", error);
+            container.innerHTML = `<p class="text-red-500">An error occurred while generating the pitch.</p>`;
+            button.disabled = false;
+        }
+    }
+
+    function handlePitchGeneration(e) {
+        if (e.target && e.target.classList.contains('generate-pitch-btn')) {
+            const projectId = e.target.dataset.projectId;
+            const project = projectsData.find(p => p.id === projectId);
+            const button = e.target;
+            const container = document.getElementById(`pitch-container-${projectId}`);
+
+            const prompt = `
+                As an expert hackathon judge, create a compelling and concise elevator pitch for the following project.
+                The pitch should be under 150 words and highlight the problem, the innovative solution, and the potential impact.
+
+                Project Title: ${project.title}
+                Problem: ${project.problemStatement}
+                Solution: ${project.solution.name} - ${project.solution.description}
+                Key Features: ${project.solution.features.join(', ')}
+                Strategic Advantage: ${project.reasoning}
+
+                Structure the pitch with a strong opening, a clear explanation of the solution, and a powerful closing statement about its impact.
+            `;
+            
+            callGeminiAPI(prompt, button, container);
+        }
+    }
+
+    function renderDetails() {
+        detailsContainer.innerHTML = '';
+        projectsData.forEach(project => {
+            let techStackHTML = '';
+            for (const [category, techs] of Object.entries(project.techStack)) {
+                techStackHTML += `<div class="mb-4">
+                    <h5 class="font-bold text-sm uppercase text-[#6B6B6B] tracking-wider mb-2">${category}</h5>
+                    <div class="flex flex-wrap gap-2">
+                        ${techs.map(tech => `<span class="bg-[#F8F7F4] text-[#4A4A4A] text-sm font-medium px-3 py-1 rounded-full border border-[#EAE8E1]">${tech}</span>`).join('')}
+                    </div>
+                </div>`;
+            }
+
+            const detailHTML = `
+                <section id="${project.id}" class="pt-24 -mt-20">
+                    <div class="text-center mb-12">
+                         <h2 class="text-3xl md:text-4xl font-extrabold text-[#3D352A]">${project.emoji} ${project.title}</h2>
+                         <p class="text-md text-[#6B6B6B] mt-2">Detailed Analysis for SIH Problem ${project.sihProblem}</p>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                        <div class="lg:col-span-3 space-y-8">
+                             <div class="detail-card">
+                                <h3 class="text-2xl font-bold text-[#3D352A] mb-4 flex items-center"><span class="text-2xl mr-3">🎯</span>Problem Statement</h3>
+                                <p class="text-base leading-relaxed text-[#4A4A4A]">${project.problemStatement}</p>
+                            </div>
+                             <div class="detail-card">
+                                <h3 class="text-2xl font-bold text-[#3D352A] mb-4 flex items-center"><span class="text-2xl mr-3">💡</span>Solution: "${project.solution.name}"</h3>
+                                <p class="text-base leading-relaxed text-[#4A4A4A]">${project.solution.description}</p>
+                            </div>
+                            <div class="detail-card">
+                                <h3 class="text-2xl font-bold text-[#3D352A] mb-4 flex items-center"><span class="text-2xl mr-3">🏆</span>Strategic Advantage</h3>
+                                <p class="text-base leading-relaxed text-[#4A4A4A] mb-6">${project.reasoning}</p>
+                                <button data-project-id="${project.id}" class="generate-pitch-btn w-full mt-4 bg-[#3D352A] text-white font-bold py-3 px-4 rounded-xl text-center hover:bg-[#2a241c] transition-colors shadow-lg shadow-[#3D352A]/20 hover:shadow-[#3D352A]/40 flex items-center justify-center">
+                                    <span class="mr-2">✨</span>Generate AI Pitch
+                                </button>
+                                <div id="pitch-container-${project.id}" class="mt-6"></div>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-2 space-y-8">
+                             <div class="detail-card">
+                                 <h3 class="text-2xl font-bold text-[#3D352A] mb-4 flex items-center"><span class="text-2xl mr-3">✨</span>Key Features</h3>
+                                 <ul class="space-y-4">
+                                    ${project.solution.features.map(feature => `<li class="flex items-start"><span class="text-green-500 mr-3 mt-1 text-xl">✔</span><p class="leading-relaxed">${feature.replace(/\*\*/g, '<strong class="font-semibold text-[#3D352A]">')}</p></li>`).join('')}
+                                 </ul>
+                             </div>
+                             <div class="detail-card">
+                                 <h3 class="text-2xl font-bold text-[#3D352A] mb-4 flex items-center"><span class="text-2xl mr-3">⚙️</span>Tech Stack</h3>
+                                 ${techStackHTML}
+                             </div>
+                        </div>
+                    </div>
+                </section>
+            `;
+            detailsContainer.innerHTML += detailHTML;
+        });
+    }
+
+    sortControls.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+            const sortKey = e.target.dataset.sort;
+            document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+            renderCards(sortKey);
+        }
+    });
+    
+    document.body.addEventListener('click', handlePitchGeneration);
+    
+    const navLinks = document.querySelectorAll('.nav-link');
+    const sections = document.querySelectorAll('section[id]');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const id = entry.target.id;
+                navLinks.forEach(link => {
+                    link.classList.toggle('active', link.getAttribute('href').substring(1) === id);
+                });
+            }
+        });
+    }, { rootMargin: "-40% 0px -60% 0px" });
+
+    sections.forEach(section => {
+        if (section.id !== 'overview') {
+             observer.observe(section);
+        }
+    });
+
+    renderCards();
+    renderDetails();
+});
+</script>
+
+</body>
+</html>
+
