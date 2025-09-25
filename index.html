@@ -1,416 +1,638 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIH 2025: Travel Project Explorer</title>
-    <!-- Chosen Palette: Refined Earth Tones -->
-    <!-- Application Structure Plan: The SPA is now structured with a clear "Dashboard" view and distinct "Detail" sections. The dashboard features interactive project cards, each with animated gauges for key metrics (Impact, Innovation, Complexity) and a prominent win probability score. This allows for rapid, multi-faceted comparison. Clicking a card smoothly navigates the user to a redesigned, two-column detail section. This layout separates the project's core narrative (Problem, Solution, Strategy) from its implementation details (Features, Tech Stack), which significantly improves cognitive load and makes the information more digestible. This structure optimizes for both high-level comparison and deep-dive analysis. -->
-    <!-- Visualization & Content Choices: 
-        - Report Info: Project Scores (Impact, Innovation, etc.). Goal: Compare project attributes. Viz: Animated Circular Gauges. Interaction: On-load animation. Justification: Gauges offer a more intuitive and visually rich way to compare discrete scores than a complex radar chart, making each card's strengths immediately apparent. Method: Chart.js (Doughnut).
-        - Report Info: Tech Stack. Goal: Organize technical details. Presentation: Grouped pills within categorized cards. Interaction: None. Justification: Grouping technologies into labeled categories (Frontend, AI/ML) and using visual pills provides structure and scannability, which is superior to a simple list. Method: HTML + Tailwind CSS.
-        - Report Info: Key Features. Goal: Inform. Presentation: Styled checklist with icons. Interaction: None. Justification: Using icons and improved typography makes the feature list more engaging and easier to read than a standard bulleted list. Method: HTML + Tailwind CSS.
-    -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <title>Arpan Singh | B.Tech IT Student & Developer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg-color: #F9FAFB; /* Softer Off-white */
+            --text-color: #1F2937; /* Dark Charcoal */
+            --card-bg: #FFFFFF;
+            --card-border: #E5E7EB;
+            --heading-color: #111827;
+            --subtle-text: #64748B; /* Slate Gray */
+            --primary-color: #8B5CF6; /* Vibrant Violet */
+            --primary-hover: #7C3AED;
+            --timeline-dot: #8B5CF6;
+            --timeline-line: #C4B5FD;
+            --modal-bg: rgba(255, 255, 255, 0.9);
+            --input-bg: #F3F4F6;
+        }
+        html.dark {
+            --bg-color: #111827; /* Deep Charcoal */
+            --text-color: #E5E7EB;
+            --card-bg: #1E293B; /* Lighter Charcoal */
+            --card-border: #334155;
+            --heading-color: #FFFFFF;
+            --subtle-text: #9CA3AF;
+            --primary-color: #A78BFA; /* Lighter Violet for Dark Mode */
+            --primary-hover: #8B5CF6;
+            --timeline-dot: #A78BFA;
+            --timeline-line: #4F46E5;
+            --modal-bg: rgba(30, 41, 59, 0.9);
+            --input-bg: #334155;
+        }
         body {
-            background-color: #F8F7F4; /* Lighter Cream */
-            color: #4A4A4A; /* Dark Gray */
             font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.5s ease, color 0.5s ease;
         }
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');
-        .chart-container {
-            position: relative;
-            width: 100%;
-            height: 80px;
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .nav-link { transition: all 0.3s ease; }
+        .nav-link:hover { color: var(--primary-color); transform: translateY(-2px); }
+        .section-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 1.5rem; /* Softer corners */
+            padding: 2.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .nav-link.active {
-            color: #D68D2B; /* Deep Orange */
-            font-weight: 700;
+        .section-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.07), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
-        .sort-btn {
-            transition: all 0.2s ease-in-out;
+        .chart-container { position: relative; width: 100%; max-width: 500px; margin-left: auto; margin-right: auto; height: 45vh; max-height: 450px; }
+        .animated-gradient-text {
+            background: linear-gradient(45deg, var(--primary-color), #ec4899);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        .sort-btn.active {
-            background-color: #D68D2B;
-            color: white;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        .animated-gradient-bg {
+            background: linear-gradient(300deg, #F9FAFB, #F3E8FF, #F9FAFB); /* Light lavender hues */
+            background-size: 200% 200%;
+            animation: gradient-bg-flow 15s ease infinite;
         }
-        .card-gradient {
-            background-image: linear-gradient(to top, #ffffff, #F8F7F4);
+        html.dark .animated-gradient-bg {
+            background: linear-gradient(300deg, #111827, #2c1a4d, #111827); /* Deep violet hues */
+            background-size: 200% 200%;
+            animation: gradient-bg-flow 15s ease infinite;
         }
-        .detail-card {
-            background-color: #FFFFFF;
-            border: 1px solid #EAE8E1;
-            border-radius: 1.5rem;
-            padding: 2rem;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.02);
+        @keyframes gradient-bg-flow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: .5; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner {
+            display: inline-block; width: 24px; height: 24px;
+            border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
         }
-        .animate-pulse-fast {
-            animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-12px); }
+            100% { transform: translateY(0px); }
+        }
+        .profile-photo { 
+            animation: float 6s ease-in-out infinite; 
+            box-shadow: 0 0 40px -10px var(--primary-color);
+        }
+        .scroll-reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s cubic-bezier(0.5, 0, 0, 1), transform 0.8s cubic-bezier(0.5, 0, 0, 1); }
+        .scroll-reveal.visible { opacity: 1; transform: translateY(0); }
+        .theme-switch-wrapper { display: flex; align-items: center; }
+        .theme-switch { display: inline-block; height: 24px; position: relative; width: 48px; }
+        .theme-switch input { display:none; }
+        .slider { background-color: #ccc; bottom: 0; cursor: pointer; left: 0; position: absolute; right: 0; top: 0; transition: .4s; }
+        .slider:before { background-color: #fff; bottom: 4px; content: ""; height: 16px; left: 4px; position: absolute; transition: .4s; width: 16px; }
+        input:checked + .slider { background-color: var(--primary-color); }
+        input:checked + .slider:before { transform: translateX(24px); }
+        .slider.round { border-radius: 34px; }
+        .slider.round:before { border-radius: 50%; }
+        .project-card.hidden { opacity: 0; transform: scale(0.95); pointer-events: none; height: 0; margin: 0; padding: 0; border: none; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.4s ease, visibility 0.4s ease; }
+        .modal-overlay.open { opacity: 1; visibility: visible; }
+        .modal-content { background-color: var(--modal-bg); border: 1px solid var(--card-border); border-radius: 1.5rem; padding: 2rem; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; transform: scale(0.95); transition: transform 0.4s ease; display: flex; flex-direction: column; }
+        .modal-overlay.open .modal-content { transform: scale(1); }
+        .gemini-chat-history { flex-grow: 1; overflow-y: auto; }
+        .gemini-user-msg, .gemini-ai-msg { padding: 0.75rem 1.25rem; border-radius: 1.25rem; max-width: 80%; line-height: 1.6; }
+        .gemini-user-msg { background-color: var(--primary-color); color: white; align-self: flex-end; }
+        .gemini-ai-msg { background-color: var(--card-border); color: var(--text-color); align-self: flex-start; }
+        .contact-btn, .gemini-btn {
+            background: linear-gradient(45deg, var(--primary-color), #a269f6);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px -5px var(--primary-color);
+        }
+        .contact-btn:hover, .gemini-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px -5px var(--primary-color);
+        }
+        .certification-card {
+            border-top: 4px solid var(--primary-color);
         }
     </style>
 </head>
-<body class="antialiased">
+<body class="antialiased animated-gradient-bg">
 
-    <div id="app-container" class="container mx-auto px-4 sm:px-6 lg:px-8">
-
-        <header class="text-center py-16">
-            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-[#3D352A]">SIH 2025 Travel Projects</h1>
-            <p class="mt-4 text-lg text-[#6B6B6B]">An Interactive Strategic Guide to Winning Ideas</p>
-        </header>
-
-        <nav id="navbar" class="sticky top-0 bg-[#F8F7F4]/80 backdrop-blur-lg z-10 py-4 mb-16 border-b border-[#EAE8E1]">
-            <ul class="flex justify-center items-center space-x-6 sm:space-x-10 text-sm sm:text-base font-medium text-[#6B6B6B]">
-                <li><a href="#project-1" class="nav-link hover:text-[#D68D2B] transition-colors">🙏 Crowd Manager</a></li>
-                <li><a href="#project-2" class="nav-link hover:text-[#D68D2B] transition-colors">🛡️ Safety Net</a></li>
-                <li><a href="#project-3" class="nav-link hover:text-[#D68D2B] transition-colors">🏞️ Eco-Tourism</a></li>
-                <li><a href="#project-4" class="nav-link hover:text-[#D68D2B] transition-colors">🚇 Urban Transit</a></li>
-            </ul>
-        </nav>
-        
-        <main>
-            <section id="overview" class="mb-24">
-                 <div class="text-center">
-                    <h2 class="text-3xl font-bold mb-4 text-[#3D352A]">Projects Dashboard</h2>
-                    <p class="max-w-3xl mx-auto text-[#6B6B6B] mb-8">
-                        Compare top travel projects at a glance. Sort them by their strategic potential and explore detailed insights for each proposal.
-                    </p>
-                 </div>
-                 <div id="sort-controls" class="flex justify-center items-center flex-wrap gap-3 mb-12">
-                     <span class="font-bold mr-2 text-[#3D352A]">Sort By:</span>
-                     <button data-sort="winProbability" class="sort-btn active px-4 py-2 rounded-full text-sm font-semibold bg-white border border-[#EAE8E1]">🏆 Win Probability</button>
-                     <button data-sort="impact" class="sort-btn px-4 py-2 rounded-full text-sm font-semibold bg-white border border-[#EAE8E1]">🌍 Impact</button>
-                     <button data-sort="innovation" class="sort-btn px-4 py-2 rounded-full text-sm font-semibold bg-white border border-[#EAE8E1]">💡 Innovation</button>
-                     <button data-sort="complexity" class="sort-btn px-4 py-2 rounded-full text-sm font-semibold bg-white border border-[#EAE8E1]">⚙️ Complexity</button>
-                 </div>
-                <div id="project-cards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+    <header class="bg-transparent backdrop-blur-lg sticky top-0 z-50 transition-shadow duration-300" id="navbar">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-2xl font-bold font-serif" style="color: var(--heading-color);">Arpan Singh</div>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="#skills" class="nav-link font-medium" style="color: var(--subtle-text);">Skills</a>
+                <a href="#projects" class="nav-link font-medium" style="color: var(--subtle-text);">Projects</a>
+                <a href="#education" class="nav-link font-medium" style="color: var(--subtle-text);">Education</a>
+                <a href="#certifications" class="nav-link font-medium" style="color: var(--subtle-text);">Certifications</a>
+                <div class="theme-switch-wrapper">
+                    <label class="theme-switch" for="checkbox">
+                        <input type="checkbox" id="checkbox" />
+                        <div class="slider round"></div>
+                    </label>
                 </div>
-            </section>
-
-            <div id="project-details-container" class="space-y-24">
             </div>
-        </main>
+            <button id="mobile-menu-button" class="md:hidden" style="color: var(--text-color);">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4 space-y-2 bg-transparent">
+             <a href="#skills" class="block nav-link text-center py-2" style="color: var(--subtle-text);">Skills</a>
+            <a href="#projects" class="block nav-link text-center py-2" style="color: var(--subtle-text);">Projects</a>
+            <a href="#education" class="block nav-link text-center py-2" style="color: var(--subtle-text);">Education</a>
+            <a href="#certifications" class="block nav-link text-center py-2" style="color: var(--subtle-text);">Certifications</a>
+             <div class="theme-switch-wrapper justify-center pt-2">
+                    <label class="theme-switch" for="checkbox-mobile">
+                        <input type="checkbox" id="checkbox-mobile" />
+                        <div class="slider round"></div>
+                    </label>
+                </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-12">
+        <section id="hero" class="py-24 md:py-32">
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div class="text-center md:text-left">
+                     <h1 class="text-6xl md:text-7xl font-serif font-bold mb-4 animated-gradient-text">Arpan Singh</h1>
+                    <p class="text-xl md:text-2xl max-w-xl mx-auto md:mx-0 mb-10" style="color: var(--subtle-text);">A B.Tech IT student passionate about building practical solutions with code, from mobile apps to desktop utilities.</p>
+                    <div class="flex justify-center md:justify-start items-center space-x-6">
+                        <a href="https://github.com/arpann-singh" target="_blank" class="transition-transform duration-300 hover:scale-110" style="color: var(--subtle-text);">
+                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+                        </a>
+                        <a href="https://www.linkedin.com/in/arpannsingh/" target="_blank" class="transition-transform duration-300 hover:scale-110" style="color: var(--subtle-text);">
+                             <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                        </a>
+                        <a href="mailto:arpans7@outlook.in" class="contact-btn text-white font-semibold px-8 py-3 rounded-full">Contact Me</a>
+                    </div>
+                </div>
+                <div class="flex justify-center items-center">
+                    <img src="https://i.ibb.co/8hYjXft/IMG-20240728-WA0006.jpg" alt="Arpan Singh Profile Photo" class="profile-photo rounded-full w-64 h-64 md:w-80 md:h-80 object-cover border-8" style="border-color: var(--card-bg);">
+                </div>
+            </div>
+        </section>
         
-        <footer class="text-center py-12 mt-24 border-t border-[#EAE8E1]">
-            <p class="text-[#6B6B6B]">Generated for Smart India Hackathon 2025 Analysis</p>
-        </footer>
+        <section id="gemini-tailor" class="py-20">
+            <div class="text-center mb-16 scroll-reveal">
+                <h2 class="text-5xl font-serif font-bold mb-4" style="color: var(--heading-color);">✨ Tailor My Profile for a Role</h2>
+                <p class="text-lg max-w-3xl mx-auto" style="color: var(--subtle-text);">Paste a job description below, and my AI assistant will generate a summary highlighting how my skills and projects align with the role.</p>
+            </div>
+            <div class="section-card scroll-reveal max-w-4xl mx-auto">
+                <textarea id="job-description-input" rows="8" class="w-full p-4 rounded-lg border focus:ring-2 focus:outline-none transition" placeholder="Paste the job description here..." style="background-color: var(--input-bg); border-color: var(--card-border); color: var(--text-color);"></textarea>
+                <button id="generate-summary-btn" class="gemini-btn w-full mt-6 text-white font-semibold px-8 py-4 rounded-lg flex items-center justify-center space-x-2">
+                    <span>Generate Tailored Summary</span>
+                </button>
+                <div id="summary-output" class="mt-6 p-6 rounded-lg" style="background-color: var(--input-bg); border: 1px solid var(--card-border); display: none;">
+                    <p id="summary-text" class="whitespace-pre-wrap" style="color: var(--text-color);"></p>
+                </div>
+            </div>
+        </section>
+
+
+        <section id="skills" class="py-20">
+            <div class="text-center mb-16 scroll-reveal">
+                <h2 class="text-5xl font-serif font-bold mb-4" style="color: var(--heading-color);">Technical Skills</h2>
+                <p class="text-lg max-w-2xl mx-auto" style="color: var(--subtle-text);">A visual representation of my proficiency. Filter by category to explore my capabilities.</p>
+            </div>
+            <div class="section-card scroll-reveal">
+                <div class="chart-container">
+                    <canvas id="skillsChart"></canvas>
+                </div>
+                <div class="flex justify-center flex-wrap gap-4 mt-8">
+                    <button class="skill-btn active px-6 py-2 rounded-full transition-all duration-300" data-category="languages">Languages</button>
+                    <button class="skill-btn px-6 py-2 rounded-full transition-all duration-300" data-category="frameworks">Frameworks & Libraries</button>
+                    <button class="skill-btn px-6 py-2 rounded-full transition-all duration-300" data-category="tools">Databases & Tools</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="projects" class="py-20">
+            <div class="text-center mb-16 scroll-reveal">
+                <h2 class="text-5xl font-serif font-bold mb-4" style="color: var(--heading-color);">Projects</h2>
+                 <p class="text-lg max-w-2xl mx-auto" style="color: var(--subtle-text);">A selection of my work. Filter by technology to see specific examples.</p>
+            </div>
+            <div class="flex justify-center flex-wrap gap-4 mb-12 scroll-reveal">
+                <button class="project-filter-btn active px-5 py-2 rounded-full" data-filter="all">All</button>
+                <button class="project-filter-btn px-5 py-2 rounded-full" data-filter="flutter">Flutter</button>
+                <button class="project-filter-btn px-5 py-2 rounded-full" data-filter="python">Python</button>
+                <button class="project-filter-btn px-5 py-2 rounded-full" data-filter="firebase">Firebase</button>
+            </div>
+            <div id="project-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
+                <div class="section-card scroll-reveal project-card" data-tech="flutter firebase">
+                    <h3 class="text-2xl font-serif font-bold mb-2" style="color: var(--heading-color);">Campus Connect</h3>
+                    <p class="mb-4" style="color: var(--subtle-text);">A cross-platform mobile app for a college community to post and find lost items.</p>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="bg-blue-100 text-blue-800 text-sm font-medium px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">Flutter</span>
+                        <span class="bg-green-100 text-green-800 text-sm font-medium px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">Firebase</span>
+                         <span class="bg-yellow-100 text-yellow-800 text-sm font-medium px-2.5 py-0.5 rounded-full dark:bg-yellow-900 dark:text-yellow-300">Google Cloud</span>
+                    </div>
+                    <button class="deep-dive-btn font-semibold" style="color: var(--primary-color);">View Deep Dive →</button>
+                </div>
+                <div class="section-card scroll-reveal project-card" style="transition-delay: 150ms;" data-tech="python">
+                    <h3 class="text-2xl font-serif font-bold mb-2" style="color: var(--heading-color);">GUI File Organizer</h3>
+                    <p class="mb-4" style="color: var(--subtle-text);">A desktop application to automatically organize files based on their type.</p>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="bg-indigo-100 text-indigo-800 text-sm font-medium px-2.5 py-0.5 rounded-full dark:bg-indigo-900 dark:text-indigo-300">Python</span>
+                        <span class="bg-purple-100 text-purple-800 text-sm font-medium px-2.5 py-0.5 rounded-full dark:bg-purple-900 dark:text-purple-300">Tkinter</span>
+                    </div>
+                </div>
+                <div class="section-card scroll-reveal project-card" style="transition-delay: 300ms;" data-tech="python">
+                    <h3 class="text-2xl font-serif font-bold mb-2" style="color: var(--heading-color);">Duplicate File Finder</h3>
+                    <p class="mb-4" style="color: var(--subtle-text);">A command-line utility to identify and list duplicate files within a folder.</p>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="bg-indigo-100 text-indigo-800 text-sm font-medium px-2.5 py-0.5 rounded-full dark:bg-indigo-900 dark:text-indigo-300">Python</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="education" class="py-20">
+            <div class="text-center mb-20 scroll-reveal">
+                <h2 class="text-5xl font-serif font-bold mb-4" style="color: var(--heading-color);">Education</h2>
+                <p class="text-lg max-w-3xl mx-auto" style="color: var(--subtle-text);">My academic journey from school to university.</p>
+            </div>
+            <div class="max-w-3xl mx-auto">
+                <div class="relative border-l-2 ml-4" style="border-color: var(--timeline-line);">
+                     <div class="mb-12 scroll-reveal">
+                        <div class="absolute -left-3.5 mt-1.5 w-7 h-7 rounded-full border-4 flex items-center justify-center" style="background-color: var(--timeline-dot); border-color: var(--bg-color);">
+                            <span class="text-sm">🏫</span>
+                        </div>
+                        <div class="pl-12">
+                            <h3 class="text-xl font-serif font-bold" style="color: var(--heading-color);">Class X (CBSE)</h3>
+                            <p class="font-medium" style="color: var(--subtle-text);">MGM Senior Secondary School, Bhilai</p>
+                            <p class="text-sm my-1" style="color: var(--subtle-text);">Graduated 2021</p>
+                            <em class="text-sm" style="color: var(--subtle-text);">Percentage: 88%</em>
+                        </div>
+                    </div>
+                    <div class="mb-12 scroll-reveal">
+                        <div class="absolute -left-3.5 mt-1.5 w-7 h-7 rounded-full border-4 flex items-center justify-center" style="background-color: var(--timeline-dot); border-color: var(--bg-color);">
+                             <span class="text-sm">🏫</span>
+                        </div>
+                        <div class="pl-12">
+                            <h3 class="text-xl font-serif font-bold" style="color: var(--heading-color);">Class XII (CBSE)</h3>
+                            <p class="font-medium" style="color: var(--subtle-text);">MGM Senior Secondary School, Bhilai</p>
+                            <p class="text-sm my-1" style="color: var(--subtle-text);">Graduated 2023</p>
+                            <em class="text-sm" style="color: var(--subtle-text);">Percentage: 85%</em>
+                        </div>
+                    </div>
+                    <div class="mb-12 scroll-reveal">
+                        <div class="absolute -left-3.5 mt-1.5 w-7 h-7 rounded-full border-4 flex items-center justify-center" style="background-color: var(--timeline-dot); border-color: var(--bg-color);">
+                            <span class="text-sm">🎓</span>
+                        </div>
+                        <div class="pl-12">
+                            <h3 class="text-xl font-serif font-bold" style="color: var(--heading-color);">B.Tech, Information Technology</h3>
+                            <p class="font-medium" style="color: var(--subtle-text);">Shri Shankaracharya Technical Campus</p>
+                            <p class="text-sm my-1" style="color: var(--subtle-text);">Currently Pursuing | Expected May 2027</p>
+                            <div class="mt-3">
+                                <h4 class="font-semibold" style="color: var(--text-color);">Relevant Coursework:</h4>
+                                <ul class="list-disc list-inside text-sm space-y-1 mt-1" style="color: var(--subtle-text);">
+                                    <li>Data Structures & Algorithms</li>
+                                    <li>Object-Oriented Programming</li>
+                                    <li>Database Management Systems</li>
+                                    <li>Operating Systems</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="certifications" class="py-20">
+            <div class="text-center mb-16 scroll-reveal">
+                <h2 class="text-5xl font-serif font-bold mb-4" style="color: var(--heading-color);">Professional Certifications</h2>
+                <p class="text-lg max-w-2xl mx-auto" style="color: var(--subtle-text);">My commitment to continuous learning and professional development.</p>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="section-card scroll-reveal certification-card">
+                    <h3 class="text-xl font-serif font-bold mb-2" style="color: var(--heading-color);">Prompting Essentials</h3>
+                    <p class="font-medium" style="color: var(--subtle-text);">Coursera</p>
+                    <p class="text-sm mt-1" style="color: var(--subtle-text);">Issued Aug 2025</p>
+                </div>
+                <div class="section-card scroll-reveal certification-card" style="transition-delay: 100ms;">
+                    <h3 class="text-xl font-serif font-bold mb-2" style="color: var(--heading-color);">Github Foundation</h3>
+                    <p class="font-medium" style="color: var(--subtle-text);">GitHub</p>
+                    <p class="text-sm mt-1" style="color: var(--subtle-text);">Issued Nov 2024</p>
+                </div>
+                <div class="section-card scroll-reveal certification-card" style="transition-delay: 200ms;">
+                    <h3 class="text-xl font-serif font-bold mb-2" style="color: var(--heading-color);">Generative AI</h3>
+                    <p class="font-medium" style="color: var(--subtle-text);">Google Developer Student Clubs</p>
+                    <p class="text-sm mt-1" style="color: var(--subtle-text);">Issued Jul 2025</p>
+                </div>
+                <div class="section-card scroll-reveal certification-card" style="transition-delay: 0ms;">
+                    <h3 class="text-xl font-serif font-bold mb-2" style="color: var(--heading-color);">Google Play Academy Listing</h3>
+                    <p class="font-medium" style="color: var(--subtle-text);">Google Play</p>
+                    <p class="text-sm mt-1" style="color: var(--subtle-text);">Issued Jul 2025</p>
+                </div>
+                <div class="section-card scroll-reveal certification-card" style="transition-delay: 100ms;">
+                    <h3 class="text-xl font-serif font-bold mb-2" style="color: var(--heading-color);">UX Design</h3>
+                    <p class="font-medium" style="color: var(--subtle-text);">Coursera</p>
+                    <p class="text-sm mt-1" style="color: var(--subtle-text);">Issued Apr 2025</p>
+                </div>
+                <div class="section-card scroll-reveal certification-card" style="transition-delay: 200ms;">
+                    <h3 class="text-xl font-serif font-bold mb-2" style="color: var(--heading-color);">Cybersecurity</h3>
+                    <p class="font-medium" style="color: var(--subtle-text);">Coursera</p>
+                    <p class="text-sm mt-1" style="color: var(--subtle-text);">Issued Jan 2025</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    
+    <footer id="contact" class="py-16" style="background-color: var(--card-bg); border-top: 1px solid var(--card-border);">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-4xl font-serif font-bold mb-4" style="color: var(--heading-color);">Get In Touch</h2>
+            <p class="mb-8 max-w-xl mx-auto" style="color: var(--subtle-text);">I'm seeking internship opportunities and am excited to bring my skills to a forward-thinking team. Let's connect!</p>
+            <a href="mailto:arpans7@outlook.in" class="contact-btn inline-block text-white text-lg font-medium px-8 py-4 rounded-full">arpans7@outlook.in</a>
+            <div class="mt-8" style="color: var(--subtle-text);">
+                <p>+91 7987755520</p>
+                <p id="clock" class="text-sm mt-2"></p>
+            </div>
+        </div>
+    </footer>
+
+    <div id="project-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex justify-between items-start mb-4">
+                <h2 class="text-3xl font-serif font-bold" style="color: var(--heading-color);">Campus Connect: A Lost & Found Platform</h2>
+                <button id="close-modal-btn" class="text-3xl leading-none" style="color: var(--subtle-text);">&times;</button>
+            </div>
+            <div class="space-y-6 text-left" style="color: var(--text-color);">
+                <div>
+                    <h3 class="text-xl font-bold mb-2 font-serif" style="color: var(--heading-color);">Problem & Solution</h3>
+                    <p style="color: var(--subtle-text);">"Campus Connect" is a mobile-first application designed to be the centralized hub for lost and found items on a college campus. It streamlines the recovery process by instantly and securely connecting the person who lost an item with the person who found it, maximizing recovery chances.</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-2 font-serif" style="color: var(--heading-color);">Technology Stack</h3>
+                    <ul class="list-disc list-inside space-y-1" style="color: var(--subtle-text);">
+                        <li><b>Mobile Framework:</b> Flutter (Dart)</li>
+                        <li><b>Backend:</b> Google Firebase (Authentication, Cloud Firestore, Cloud Storage)</li>
+                        <li><b>Serverless Functions:</b> Cloud Functions for Firebase (TypeScript)</li>
+                        <li><b>Notifications:</b> Firebase Cloud Messaging (FCM)</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t mt-6 pt-6" style="border-color: var(--card-border);">
+                 <h3 class="text-xl font-bold mb-4 font-serif text-left" style="color: var(--heading-color);">✨ Ask the Project Assistant</h3>
+                 <div id="gemini-chat-history" class="gemini-chat-history mb-4 space-y-4 flex flex-col h-64">
+                    <div class="gemini-ai-msg">Hello! Ask me anything about the Campus Connect project. For example: "What was the biggest technical challenge?"</div>
+                 </div>
+                 <div class="flex space-x-2">
+                    <input type="text" id="gemini-chat-input" class="flex-grow p-3 rounded-lg border focus:ring-2 focus:outline-none transition" style="background-color: var(--input-bg); border-color: var(--card-border); color: var(--text-color);" placeholder="Ask a question...">
+                    <button id="gemini-chat-send" class="gemini-btn text-white font-semibold px-5 py-3 rounded-lg">Send</button>
+                 </div>
+            </div>
+        </div>
     </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    let projectsData = [
-        {
-            id: 'project-1',
-            title: 'AI Pilgrimage Crowd Manager',
-            emoji: '🙏',
-            sihProblem: '#160',
-            winProbability: 85, impact: 9, innovation: 7, complexity: 8,
-            winnerBlurb: "Tackles a high-visibility, critical safety issue in India. A classic SIH problem where technology directly saves lives.",
-            reasoning: "The combination of a critical safety need, a clear government client, and the application of modern AI (Computer Vision) creates a powerful narrative. The potential to prevent stampedes and improve the experience for millions of devotees makes this project a top contender.",
-            problemStatement: "Major pilgrimage sites like Somnath and Dwarka attract immense crowds, leading to severe congestion, long wait times, and significant safety risks, including stampedes. Temple authorities lack real-time data and predictive tools to manage crowd flow effectively, making their response reactive rather than proactive.",
-            solution: {
-                name: "DarshanFlow",
-                description: "An intelligent crowd management platform that uses AI on existing CCTV feeds and mobile data to monitor, predict, and manage crowd dynamics in real-time.",
-                features: ["**Real-time Crowd Density Heatmaps:** AI processes CCTV feeds to generate a live heatmap, identifying crowded spots and estimating wait times.", "**Virtual Queuing System:** An app-based system allowing pilgrims to reserve a time slot for `darshan`, receiving a digital token to eliminate long physical queues.", "**Predictive Alerts:** An ML model analyzes crowd flow to predict potential bottlenecks 30-60 minutes in advance, alerting authorities to take preemptive action.", "**Smart Operations Dashboard:** A unified dashboard for authorities to monitor heatmaps, manage virtual queues, deploy staff, and send mass notifications."]
-            },
-            techStack: { "Frontend": ["React.js", "Vue.js", "Flutter"], "Backend": ["Python (FastAPI)", "Node.js"], "AI/ML": ["OpenCV", "TensorFlow", "YOLOv5"], "Database": ["PostgreSQL", "TimescaleDB", "Redis"], "Data Streaming": ["Apache Kafka", "RTSP"], "Cloud/DevOps": ["AWS/GCP", "Docker", "Kubernetes"] }
-        },
-        {
-            id: 'project-2',
-            title: 'AI Tourist Safety Net',
-            emoji: '🛡️',
-            sihProblem: '#2',
-            winProbability: 80, impact: 8, innovation: 9, complexity: 9,
-            winnerBlurb: "Technically ambitious with a huge 'wow' factor. Combines AI, Blockchain, and Geo-Fencing to solve a universal problem.",
-            reasoning: "The innovation here is the shift from a reactive panic button to a proactive, intelligent safety system. The use of on-device AI for anomaly detection is a sophisticated feature, and the blockchain ID adds a layer of security and trust that judges will find impressive.",
-            problemStatement: "Tourists in remote or unfamiliar areas are vulnerable. In an emergency, sharing accurate location and verified identity with first responders is a major challenge. Existing safety apps are purely reactive and don't offer intelligent, automated distress detection.",
-            solution: {
-                name: "Aura",
-                description: "A personal safety companion app that provides a secure digital identity and uses AI to create a smart safety net around travelers, proactively detecting signs of distress and enabling an instant, coordinated response.",
-                features: ["**Blockchain Digital ID:** A secure, decentralized digital ID that can be quickly verified by authorities.", "**AI Anomaly Detection:** On-device ML analyzes phone sensors to automatically detect falls, prolonged inactivity, or significant route deviation.", "**Smart Geo-fencing:** Proactively warns users if they enter unsafe areas and alerts contacts if they deviate from their travel plan.", "**Intelligent SOS:** A panic button that starts a live location stream, records ambient audio, and alerts a network of police, family, and volunteers."]
-            },
-            techStack: { "Frontend": ["Flutter", "React Native"], "Backend": ["Node.js (NestJS)", "Go (Gin)"], "AI/ML": ["TensorFlow Lite", "PyTorch Mobile"], "Blockchain": ["Hyperledger Fabric", "Polygon"], "Database": ["PostgreSQL/PostGIS", "MongoDB"], "Real-time": ["Socket.IO", "WebRTC"], "Cloud/DevOps": ["AWS/GCP", "Docker", "Kubernetes", "Mapbox"] }
-        },
-        {
-            id: 'project-3',
-            title: 'Immersive Eco-Tourism Platform',
-            emoji: '🏞️',
-            sihProblem: '#32',
-            winProbability: 75, impact: 7, innovation: 8, complexity: 7,
-            winnerBlurb: "A story-driven project with a lot of heart. Aligns with 'Vocal for Local' and sustainable tourism goals.",
-            reasoning: "Its strength lies in its strong narrative and positive social impact. The AR and AI planner features are innovative and create a great demo. The win probability depends on the team's ability to create compelling content and showcase a real connection to the local culture it aims to promote.",
-            problemStatement: "The rich natural beauty and unique tribal culture of regions like Jharkhand are often 'hidden gems,' poorly marketed to a global audience. Standard tourism websites are static and fail to capture the immersive stories and experiences, preventing local communities from benefiting economically.",
-            solution: {
-                name: "Jharkhand Explorer",
-                description: "An AI-driven platform that acts as a personal guide. It uses Augmented Reality to bring stories to life, an AI planner for personalized trips, and a marketplace to connect tourists directly with local artisans and communities.",
-                features: ["**AI-Powered Trip Planner:** Generates custom itineraries based on user interests, focusing on authentic, off-the-beaten-path experiences.", "**Augmented Reality (AR) Storyteller:** At landmarks, users can point their phone to see AR overlays of historical reconstructions, animations of folk stories, or local flora/fauna info.", "**Local Artisan Marketplace:** Allows tourists to buy authentic crafts directly from local artisans, with transparent pricing and storytelling about the craft.", "**Eco-Tourism Gamification:** Rewards tourists with points for sustainable practices (e.g., using designated waste bins, staying at eco-homestays)."]
-            },
-            techStack: { "Frontend": ["Flutter", "React Native (AR)"], "Backend": ["Python (Django)", "Headless CMS (Strapi)"], "AI/ML": ["TensorFlow Recommenders", "Scikit-learn"], "Database": ["PostgreSQL", "MongoDB"], "Cloud/DevOps": ["Vercel", "AWS S3", "Cloudinary"], "Payments": ["Stripe", "Razorpay"] }
-        },
-        {
-            id: 'project-4',
-            title: 'Urban Transit Companion',
-            emoji: '🚇',
-            sihProblem: '#81',
-            winProbability: 65, impact: 8, innovation: 6, complexity: 6,
-            winnerBlurb: "Extremely practical, solving a real, everyday problem for millions with a clear data-driven value proposition for cities.",
-            reasoning: "The solution is highly useful but competes in a space with existing players. The winning edge comes from deep integration with local public transport APIs and the sophistication of the passive trip-logging feature. Success hinges on demonstrating a clear data-sharing model for transport authorities.",
-            problemStatement: "Navigating urban transport is fragmented. Tourists and citizens must juggle multiple apps for journey planning, ticketing, and live tracking. Simultaneously, transport authorities lack unified, real-time data on how people move across different modes of transport, hindering effective planning.",
-            solution: {
-                name: "CityConnect",
-                description: "An all-in-one urban mobility app that integrates journey planning, universal ticketing, and live tracking for all public transport. It also features a privacy-first, passive trip logger to provide anonymized mobility data to city planners.",
-                features: ["**Multimodal Journey Planner:** Suggests the best routes combining metro, buses, and auto-rickshaws with real-time price and time comparisons.", "**Unified Digital Ticketing:** A single QR-code based ticketing system and wallet for all integrated public transport.", "**Live Vehicle Tracking:** Shows the real-time GPS location of buses and metros on a map.", "**Passive Trip Logging:** With user consent, the app automatically detects and logs journeys, which are then anonymized and aggregated to create mobility analytics for authorities."]
-            },
-            techStack: { "Frontend": ["Flutter", "React Native"], "Backend": ["Go", "Node.js"], "Database": ["TimescaleDB", "PostgreSQL/PostGIS"], "Data Ingestion": ["Apache Kafka", "GTFS-Realtime"], "Cloud/DevOps": ["AWS/GCP", "Kubernetes", "Kinesis"], "Mapping APIs": ["Mapbox", "OpenStreetMap"] }
-        }
-    ];
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const navbar = document.getElementById('navbar');
+            window.onscroll = () => { window.scrollY > 50 ? navbar.classList.add("shadow-md") : navbar.classList.remove("shadow-md"); };
 
-    const cardsContainer = document.getElementById('project-cards-container');
-    const detailsContainer = document.getElementById('project-details-container');
-    const sortControls = document.getElementById('sort-controls');
-    let activeChartObjects = {};
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+            
+            // NOTE: Add your Gemini API Key below for the AI features to work.
+            const apiKey = "YOUR_API_KEY_HERE"; 
 
-    const gaugeConfig = (value, label, color) => ({
-        type: 'doughnut',
-        data: {
-            labels: [label, ''],
-            datasets: [{
-                data: [value, 10 - value],
-                backgroundColor: [color, '#EAE8E1'],
-                borderColor: ['#FFFFFF', '#FFFFFF'],
-                borderWidth: 2,
-                circumference: 180,
-                rotation: 270,
-            }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false, cutout: '75%',
-            plugins: { legend: { display: false }, tooltip: { enabled: false } },
-            animation: { animateScale: true, animateRotate: true }
-        },
-        plugins: [{
-            id: 'gaugeLabel',
-            beforeDraw(chart) {
-                const { width, height, ctx } = chart;
-                ctx.restore();
-                ctx.font = `800 ${height / 4.5}px sans-serif`;
-                ctx.textBaseline = 'middle'; ctx.fillStyle = '#3D352A';
-                const text = `${value}`;
-                const textX = Math.round((width - ctx.measureText(text).width) / 2);
-                const textY = height / 1.5;
-                ctx.fillText(text, textX, textY);
-                
-                ctx.font = `500 ${height / 9}px sans-serif`;
-                ctx.textBaseline = 'bottom'; ctx.fillStyle = '#6B6B6B';
-                const labelText = chart.data.labels[0];
-                const labelX = Math.round((width - ctx.measureText(labelText).width) / 2);
-                const labelY = height - 5;
-                ctx.fillText(labelText, labelX, labelY);
+            const callGeminiAPI = async (payload, retries = 3, delay = 1000) => {
+                if (!apiKey || apiKey === "YOUR_API_KEY_HERE") {
+                    console.error("Gemini API key is missing.");
+                    return "Sorry, the AI assistant is not configured. An API key is required.";
+                }
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+                for (let i = 0; i < retries; i++) {
+                    try {
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        if (!response.ok) {
+                             const errorBody = await response.json();
+                             console.error("API Error:", errorBody);
+                             throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        const result = await response.json();
+                        const candidate = result.candidates?.[0];
+                        if (candidate?.content?.parts?.[0]?.text) {
+                            return candidate.content.parts[0].text;
+                        } else {
+                           console.error("Invalid response structure:", result);
+                           throw new Error("Invalid response structure from API.");
+                        }
+                    } catch (error) {
+                        console.error(`API call attempt ${i + 1} failed:`, error);
+                        if (i === retries - 1) return "Sorry, I'm having trouble connecting to the AI assistant right now.";
+                        await new Promise(res => setTimeout(res, delay * Math.pow(2, i)));
+                    }
+                }
+            };
 
-                ctx.save();
-            }
-        }]
-    });
+            const arpanProfile = {
+                summary: "A B.Tech Information Technology student with a strong passion for developing practical, full-stack applications. Proficient in Python and Dart, with hands-on experience in mobile development using Flutter and backend services with Google Firebase. Proven ability to take projects from concept to completion, including a comprehensive lost-and-found mobile app and various desktop utilities.",
+                skills: {
+                    languages: ["Python", "Dart", "SQL", "Java", "C++"],
+                    frameworks: ["Flutter", "Tkinter"],
+                    tools: ["Firebase", "Google Cloud", "Git", "GitHub", "Android Studio"]
+                },
+                projects: [
+                    { name: "Campus Connect", description: "A full-stack, cross-platform lost and found mobile application for college communities. Features real-time post feeds, secure in-app chat, push notifications, and advanced filtering. Built with Flutter and Firebase.", tech: ["Flutter", "Firebase", "Google Cloud"] },
+                    { name: "GUI File Organizer", description: "A desktop application with a graphical user interface built using Tkinter to automatically organize files in a directory based on their file type.", tech: ["Python", "Tkinter"] },
+                    { name: "Duplicate File Finder", description: "A Python script that scans a specified folder to identify and report any duplicate files, helping to manage storage efficiently.", tech: ["Python"] }
+                ]
+            };
 
-    function renderCards(sortKey = 'winProbability') {
-        projectsData.sort((a, b) => b[sortKey] - a[sortKey]);
-        cardsContainer.innerHTML = '';
-        Object.values(activeChartObjects).forEach(chart => chart.destroy());
-        activeChartObjects = {};
-        
-        projectsData.forEach(project => {
-            const cardHTML = `
-                <div class="card-gradient p-6 rounded-3xl shadow-lg border border-[#EAE8E1] hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col text-center">
-                    <div class="flex-grow">
-                        <h3 class="text-xl font-bold text-[#3D352A] h-16 flex items-center justify-center">${project.emoji} ${project.title}</h3>
-                        <div class="relative my-4">
-                             <div class="text-5xl font-extrabold text-[#3D352A]">${project.winProbability}%</div>
-                             <div class="text-xs text-[#6B6B6B] font-semibold uppercase tracking-wider">Win Probability</div>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2 px-4 my-6">
-                            <div class="chart-container"><canvas id="chart-impact-${project.id}"></canvas></div>
-                            <div class="chart-container"><canvas id="chart-innovation-${project.id}"></canvas></div>
-                            <div class="chart-container"><canvas id="chart-complexity-${project.id}"></canvas></div>
-                        </div>
-                        <p class="text-sm text-[#4A4A4A] mt-4 flex-grow">${project.winnerBlurb}</p>
-                    </div>
-                    <a href="#${project.id}" class="block w-full mt-6 bg-[#D68D2B] text-white font-bold py-3 px-4 rounded-xl text-center hover:bg-[#b97825] transition-colors shadow-lg shadow-[#D68D2B]/20 hover:shadow-[#D68D2B]/40">
-                        Explore Project Details
-                    </a>
-                </div>
-            `;
-            cardsContainer.innerHTML += cardHTML;
-        });
-
-        projectsData.forEach(project => {
-            activeChartObjects[`impact-${project.id}`] = new Chart(document.getElementById(`chart-impact-${project.id}`).getContext('2d'), gaugeConfig(project.impact, 'Impact', '#34D399'));
-            activeChartObjects[`innovation-${project.id}`] = new Chart(document.getElementById(`chart-innovation-${project.id}`).getContext('2d'), gaugeConfig(project.innovation, 'Innovation', '#60A5FA'));
-            activeChartObjects[`complexity-${project.id}`] = new Chart(document.getElementById(`chart-complexity-${project.id}`).getContext('2d'), gaugeConfig(project.complexity, 'Complexity', '#F87171'));
-        });
-    }
-
-    async function callGeminiAPI(prompt, button, container) {
-        const apiKey = "";
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-        const payload = { contents: [{ parts: [{ text: prompt }] }] };
-
-        container.innerHTML = `<div class="bg-[#F8F7F4] p-4 rounded-lg animate-pulse-fast"><p class="text-center text-[#6B6B6B]">✨ Generating Pitch...</p></div>`;
-        button.disabled = true;
-
-        try {
-            let response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+            const jobDescriptionInput = document.getElementById('job-description-input');
+            const generateSummaryBtn = document.getElementById('generate-summary-btn');
+            const summaryOutput = document.getElementById('summary-output');
+            const summaryText = document.getElementById('summary-text');
+            generateSummaryBtn.addEventListener('click', async () => {
+                const jobDesc = jobDescriptionInput.value;
+                if (!jobDesc.trim()) { alert("Please paste a job description first."); return; }
+                generateSummaryBtn.disabled = true;
+                generateSummaryBtn.innerHTML = `<span class="spinner"></span><span>Generating...</span>`;
+                summaryOutput.style.display = 'block';
+                summaryText.textContent = 'Analyzing the job description and tailoring the summary...';
+                const prompt = `You are a professional career coach. Your task is to write a concise, professional summary (2-3 paragraphs) for a student, Arpan Singh, based on his profile. You must analyze the provided job description and highlight how Arpan's specific skills and project experiences align with the requirements of the role. Be direct, use strong action verbs, and quantify achievements where possible based on the project descriptions.\n\nArpan's Profile:\n${JSON.stringify(arpanProfile, null, 2)}\n\nJob Description:\n${jobDesc}`;
+                const payload = { contents: [{ parts: [{ text: prompt }] }], };
+                const result = await callGeminiAPI(payload);
+                summaryText.textContent = result;
+                generateSummaryBtn.disabled = false;
+                generateSummaryBtn.innerHTML = `<span>Generate Tailored Summary</span>`;
             });
 
-            if (!response.ok) {
-                throw new Error(`API call failed with status: ${response.status}`);
-            }
-
-            const result = await response.json();
-            const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-
-            if (text) {
-                const formattedText = text
-                    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-[#3D352A]">$1</strong>')
-                    .replace(/\*/g, '<br><br>• ');
-                container.innerHTML = `<div class="bg-[#F8F7F4] p-6 rounded-lg border border-[#EAE8E1] text-base leading-relaxed text-[#4A4A4A]">${formattedText}</div>`;
-            } else {
-                container.innerHTML = `<p class="text-red-500">Failed to generate pitch. Response was empty.</p>`;
-                button.disabled = false;
-            }
-        } catch (error) {
-            console.error("Gemini API Error:", error);
-            container.innerHTML = `<p class="text-red-500">An error occurred while generating the pitch.</p>`;
-            button.disabled = false;
-        }
-    }
-
-    function handlePitchGeneration(e) {
-        if (e.target && e.target.classList.contains('generate-pitch-btn')) {
-            const projectId = e.target.dataset.projectId;
-            const project = projectsData.find(p => p.id === projectId);
-            const button = e.target;
-            const container = document.getElementById(`pitch-container-${projectId}`);
-
-            const prompt = `
-                As an expert hackathon judge, create a compelling and concise elevator pitch for the following project.
-                The pitch should be under 150 words and highlight the problem, the innovative solution, and the potential impact.
-
-                Project Title: ${project.title}
-                Problem: ${project.problemStatement}
-                Solution: ${project.solution.name} - ${project.solution.description}
-                Key Features: ${project.solution.features.join(', ')}
-                Strategic Advantage: ${project.reasoning}
-
-                Structure the pitch with a strong opening, a clear explanation of the solution, and a powerful closing statement about its impact.
-            `;
-            
-            callGeminiAPI(prompt, button, container);
-        }
-    }
-
-    function renderDetails() {
-        detailsContainer.innerHTML = '';
-        projectsData.forEach(project => {
-            let techStackHTML = '';
-            for (const [category, techs] of Object.entries(project.techStack)) {
-                techStackHTML += `<div class="mb-4">
-                    <h5 class="font-bold text-sm uppercase text-[#6B6B6B] tracking-wider mb-2">${category}</h5>
-                    <div class="flex flex-wrap gap-2">
-                        ${techs.map(tech => `<span class="bg-[#F8F7F4] text-[#4A4A4A] text-sm font-medium px-3 py-1 rounded-full border border-[#EAE8E1]">${tech}</span>`).join('')}
-                    </div>
-                </div>`;
-            }
-
-            const detailHTML = `
-                <section id="${project.id}" class="pt-24 -mt-20">
-                    <div class="text-center mb-12">
-                         <h2 class="text-3xl md:text-4xl font-extrabold text-[#3D352A]">${project.emoji} ${project.title}</h2>
-                         <p class="text-md text-[#6B6B6B] mt-2">Detailed Analysis for SIH Problem ${project.sihProblem}</p>
-                    </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                        <div class="lg:col-span-3 space-y-8">
-                             <div class="detail-card">
-                                <h3 class="text-2xl font-bold text-[#3D352A] mb-4 flex items-center"><span class="text-2xl mr-3">🎯</span>Problem Statement</h3>
-                                <p class="text-base leading-relaxed text-[#4A4A4A]">${project.problemStatement}</p>
-                            </div>
-                             <div class="detail-card">
-                                <h3 class="text-2xl font-bold text-[#3D352A] mb-4 flex items-center"><span class="text-2xl mr-3">💡</span>Solution: "${project.solution.name}"</h3>
-                                <p class="text-base leading-relaxed text-[#4A4A4A]">${project.solution.description}</p>
-                            </div>
-                            <div class="detail-card">
-                                <h3 class="text-2xl font-bold text-[#3D352A] mb-4 flex items-center"><span class="text-2xl mr-3">🏆</span>Strategic Advantage</h3>
-                                <p class="text-base leading-relaxed text-[#4A4A4A] mb-6">${project.reasoning}</p>
-                                <button data-project-id="${project.id}" class="generate-pitch-btn w-full mt-4 bg-[#3D352A] text-white font-bold py-3 px-4 rounded-xl text-center hover:bg-[#2a241c] transition-colors shadow-lg shadow-[#3D352A]/20 hover:shadow-[#3D352A]/40 flex items-center justify-center">
-                                    <span class="mr-2">✨</span>Generate AI Pitch
-                                </button>
-                                <div id="pitch-container-${project.id}" class="mt-6"></div>
-                            </div>
-                        </div>
-                        <div class="lg:col-span-2 space-y-8">
-                             <div class="detail-card">
-                                 <h3 class="text-2xl font-bold text-[#3D352A] mb-4 flex items-center"><span class="text-2xl mr-3">✨</span>Key Features</h3>
-                                 <ul class="space-y-4">
-                                    ${project.solution.features.map(feature => `<li class="flex items-start"><span class="text-green-500 mr-3 mt-1 text-xl">✔</span><p class="leading-relaxed">${feature.replace(/\*\*/g, '<strong class="font-semibold text-[#3D352A]">')}</p></li>`).join('')}
-                                 </ul>
-                             </div>
-                             <div class="detail-card">
-                                 <h3 class="text-2xl font-bold text-[#3D352A] mb-4 flex items-center"><span class="text-2xl mr-3">⚙️</span>Tech Stack</h3>
-                                 ${techStackHTML}
-                             </div>
-                        </div>
-                    </div>
-                </section>
-            `;
-            detailsContainer.innerHTML += detailHTML;
-        });
-    }
-
-    sortControls.addEventListener('click', (e) => {
-        if (e.target.tagName === 'BUTTON') {
-            const sortKey = e.target.dataset.sort;
-            document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
-            e.target.classList.add('active');
-            renderCards(sortKey);
-        }
-    });
-    
-    document.body.addEventListener('click', handlePitchGeneration);
-    
-    const navLinks = document.querySelectorAll('.nav-link');
-    const sections = document.querySelectorAll('section[id]');
-    
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const id = entry.target.id;
-                navLinks.forEach(link => {
-                    link.classList.toggle('active', link.getAttribute('href').substring(1) === id);
+            const skillsData = {
+                languages: { labels: ['Python', 'Dart', 'SQL', 'Java', 'C++'], data: [90, 85, 75, 70, 65] },
+                frameworks: { labels: ['Flutter', 'Tkinter'], data: [90, 80] },
+                tools: { labels: ['Firebase', 'Google Cloud', 'Git & GitHub', 'VS Code'], data: [85, 75, 90, 95] }
+            };
+            const ctx = document.getElementById('skillsChart').getContext('2d');
+            let skillsChart;
+            function createOrUpdateChart(category, isDark) {
+                const data = skillsData[category];
+                if (skillsChart) skillsChart.destroy();
+                const chartType = data.labels.length < 3 ? 'polarArea' : 'radar';
+                const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)';
+                const labelColor = isDark ? '#e5e7eb' : '#374151';
+                const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
+                const options = {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { r: { angleLines: { color: gridColor }, grid: { color: gridColor }, pointLabels: { font: { size: 14, family: "'Inter', sans-serif" }, color: labelColor }, ticks: { display: false, stepSize: 20, beginAtZero: true, max: 100 } } },
+                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.label}: ${c.raw}% proficiency` } } }
+                };
+                if (chartType === 'polarArea') delete options.scales;
+                skillsChart = new Chart(ctx, {
+                    type: chartType,
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'Proficiency',
+                            data: data.data,
+                            backgroundColor: chartType === 'radar' ? primaryColor + '33' : ['#A78BFA40', '#8B5CF640', '#7C3AED40'],
+                            borderColor: primaryColor, borderWidth: 2, pointBackgroundColor: primaryColor, pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff', pointHoverBorderColor: primaryColor
+                        }]
+                    },
+                    options: options
                 });
             }
+            const skillButtons = document.querySelectorAll('.skill-btn');
+            skillButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const category = e.target.dataset.category;
+                    createOrUpdateChart(category, document.documentElement.classList.contains('dark'));
+                    skillButtons.forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                    updateSkillButtonStyles();
+                });
+            });
+            function updateSkillButtonStyles() {
+                const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
+                skillButtons.forEach(btn => {
+                    if (btn.classList.contains('active')) {
+                        btn.style.backgroundColor = primaryColor;
+                        btn.style.color = '#ffffff';
+                    } else {
+                        btn.style.backgroundColor = 'var(--card-border)';
+                        btn.style.color = 'var(--subtle-text)';
+                    }
+                });
+            }
+
+            const projectFilterButtons = document.querySelectorAll('.project-filter-btn');
+            const projectCards = document.querySelectorAll('.project-card');
+            projectFilterButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const filter = e.target.dataset.filter;
+                    projectFilterButtons.forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                    projectCards.forEach(card => {
+                        const tech = card.dataset.tech.split(' ');
+                        card.classList.toggle('hidden', !(filter === 'all' || tech.includes(filter)));
+                    });
+                    updateProjectFilterButtonStyles();
+                });
+            });
+            function updateProjectFilterButtonStyles() {
+                const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
+                 projectFilterButtons.forEach(btn => {
+                    if (btn.classList.contains('active')) {
+                        btn.style.backgroundColor = primaryColor;
+                        btn.style.color = '#ffffff';
+                    } else {
+                        btn.style.backgroundColor = 'var(--card-border)';
+                        btn.style.color = 'var(--subtle-text)';
+                    }
+                });
+            }
+            
+            const deepDiveButton = document.querySelector('.deep-dive-btn');
+            const modal = document.getElementById('project-modal');
+            const closeModalButton = document.getElementById('close-modal-btn');
+            deepDiveButton.addEventListener('click', () => modal.classList.add('open'));
+            closeModalButton.addEventListener('click', () => modal.classList.remove('open'));
+            modal.addEventListener('click', (e) => { if(e.target === modal) modal.classList.remove('open'); });
+            
+            const chatHistoryContainer = document.getElementById('gemini-chat-history');
+            const chatInput = document.getElementById('gemini-chat-input');
+            const chatSendBtn = document.getElementById('gemini-chat-send');
+            let projectChatHistory = [];
+            const handleProjectChat = async () => {
+                const userQuery = chatInput.value.trim(); if (!userQuery) return;
+                chatInput.value = ''; chatSendBtn.disabled = true;
+                const userMsgDiv = document.createElement('div'); userMsgDiv.className = 'gemini-user-msg';
+                userMsgDiv.textContent = userQuery; chatHistoryContainer.appendChild(userMsgDiv);
+                chatHistoryContainer.scrollTop = chatHistoryContainer.scrollHeight;
+                const thinkingDiv = document.createElement('div'); thinkingDiv.className = 'gemini-ai-msg';
+                thinkingDiv.textContent = 'Thinking...'; chatHistoryContainer.appendChild(thinkingDiv);
+                chatHistoryContainer.scrollTop = chatHistoryContainer.scrollHeight;
+                projectChatHistory.push({ role: "user", parts: [{ text: userQuery }] });
+                const projectSynopsis = `Full Project Synopsis: Campus Connect - A Lost & Found Platform. Problem: On a college campus, misplacing belongings is a persistent challenge. Traditional methods are inefficient and lack real-time updates. Solution: "Campus Connect" is a comprehensive, mobile-first application serving as a centralized hub for lost and found items. It streamlines the recovery process with a secure and efficient digital platform. System Architecture: Built on a modern, scalable, and serverless architecture. Mobile Framework: Flutter (Dart). Backend: Google Firebase (Authentication, Cloud Firestore for real-time data, Cloud Storage for images). Serverless Logic: Cloud Functions for Firebase (TypeScript) for tasks like sending push notifications. Push Notifications: Firebase Cloud Messaging (FCM). Key Features: Multi-provider login (Email, Google), persistent sessions, user profiles, rich post creation with anonymous option, post editing/deletion, a real-time feed with advanced search and filtering, secure in-app chat, push notifications for new messages, and a "Claim Item" / "Mark as Returned" system to build community trust. The UI features a custom theme and shimmer loading animations for a polished user experience.`;
+                const payload = {
+                    contents: projectChatHistory,
+                    systemInstruction: { parts: [{ text: `You are a helpful project assistant for 'Campus Connect'. Your knowledge is strictly limited to the provided project synopsis: ${projectSynopsis}. Answer the user's questions based ONLY on this context. If a question is outside the scope, politely state that you can only answer questions specifically about the Campus Connect project details provided.` }] }
+                };
+                const aiResponse = await callGeminiAPI(payload);
+                projectChatHistory.push({ role: "model", parts: [{ text: aiResponse }] });
+                thinkingDiv.textContent = aiResponse;
+                chatSendBtn.disabled = false;
+                chatHistoryContainer.scrollTop = chatHistoryContainer.scrollHeight;
+            };
+            chatSendBtn.addEventListener('click', handleProjectChat);
+            chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleProjectChat(); });
+
+            const toggleSwitch = document.getElementById('checkbox');
+            const mobileToggleSwitch = document.getElementById('checkbox-mobile');
+            function setTheme(isDark) {
+                 document.documentElement.classList.toggle('dark', isDark);
+                 toggleSwitch.checked = isDark; mobileToggleSwitch.checked = isDark;
+                 localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                 createOrUpdateChart(document.querySelector('.skill-btn.active').dataset.category, isDark);
+                 updateSkillButtonStyles(); updateProjectFilterButtonStyles();
+            }
+            const currentTheme = localStorage.getItem('theme');
+            if (currentTheme) setTheme(currentTheme === 'dark');
+            else setTheme(window.matchMedia('(prefers-color-scheme: dark)').matches);
+            toggleSwitch.addEventListener('change', e => setTheme(e.target.checked));
+            mobileToggleSwitch.addEventListener('change', e => setTheme(e.target.checked));
+
+            const scrollElements = document.querySelectorAll(".scroll-reveal");
+            const elementInView = (el) => el.getBoundingClientRect().top <= (window.innerHeight || document.documentElement.clientHeight) * 0.9;
+            const handleScrollAnimation = () => { scrollElements.forEach((el) => { if (elementInView(el)) el.classList.add("visible"); }); };
+            window.addEventListener("scroll", handleScrollAnimation);
+            handleScrollAnimation();
+            
+            const clockElement = document.getElementById('clock');
+            function updateClock() {
+                const now = new Date();
+                const options = { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+                clockElement.textContent = `Bhilai, India | ${now.toLocaleTimeString('en-US', options)}`;
+            }
+            setInterval(updateClock, 1000);
+            updateClock();
+            
+            createOrUpdateChart('languages', document.documentElement.classList.contains('dark'));
+            updateSkillButtonStyles(); updateProjectFilterButtonStyles();
         });
-    }, { rootMargin: "-40% 0px -60% 0px" });
-
-    sections.forEach(section => {
-        if (section.id !== 'overview') {
-             observer.observe(section);
-        }
-    });
-
-    renderCards();
-    renderDetails();
-});
-</script>
-
+    </script>
 </body>
 </html>
 
